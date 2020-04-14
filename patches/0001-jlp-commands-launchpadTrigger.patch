@@ -1,0 +1,13 @@
+--- /tmp/launchpadTrigger.py	2020-04-14 09:45:37.677576152 +0200
++++ jlp/commands/launchpadTrigger.py	2020-04-14 15:45:48.521198255 +0200
+@@ -88,9 +88,7 @@
+     # this is here because launchpadlib is not thread safe (yet)
+     # (see also lp:459418 and lp:1025153) and also to limit the
+     # amount of concurrent connections to launchpad
+-    trigger_lock_name = '{prefix}-{instance_name}'.format(
+-        prefix=get_config_option('lock_name'),
+-        instance_name=args['lock_name'])
++    trigger_lock_name = '{instance_name}'.format(instance_name=args['lock_name'])
+     logger.debug('Going to acquire launchpad lock "{}"'
+                  ' for launchpadTrigger'.format(trigger_lock_name))
+     with SocketLock(trigger_lock_name):

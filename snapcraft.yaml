@@ -11,7 +11,7 @@ confinement: strict
 apps:
   launchpadTrigger:
     command: bin/launchpadTrigger
-    plugs: [home]
+    plugs: [home, network, network-bind]
 
 parts:
   tarmac:
@@ -21,8 +21,13 @@ parts:
     source-branch: 'master'
     override-prime: |
       :
+  patch:
+    plugin: dump
+    source: patches
+    override-prime: |
+      :
   jlp:
-    after: [tarmac]
+    after: [tarmac, patch]
     plugin: python
     python-version: python3
     source: https://git.launchpad.net/jenkins-launchpad-plugin
@@ -51,6 +56,8 @@ parts:
     override-build: |
       mv ${SNAPCRAFT_STAGE}/tarmac \
         ${SNAPCRAFT_PART_INSTALL}/lib/python3.6/site-packages/
+      patch -u ${SNAPCRAFT_PART_BUILD}/jlp/commands/launchpadTrigger.py \
+        -i ${SNAPCRAFT_PART_BUILD}/../../patch/src/0001-jlp-commands-launchpadTrigger.patch
       rm -rf ${SNAPCRAFT_STAGE}/*
       snapcraftctl build
     override-prime: |
