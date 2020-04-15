@@ -1,0 +1,59 @@
+--- /tmp/jsonjenkins.py	2020-04-15 14:40:18.227365348 +0200
++++ jlp/jsonjenkins.py	2020-04-15 14:55:32.184711501 +0200
+@@ -1,34 +1,40 @@
++"""JSON parser for Jenkins."""
+ import json
+-import urllib
+
++import requests
+
+-class JSONJenkins():
+-    urllib_opener = None
+
++class JSONJenkins():  # noqa: D101
+     def __init__(self, jenkins_url, jenkins_proxy_url, username, password):
++        """Initialize Jenkins parser with authentication parameters."""
+         self.jenkins_url = jenkins_url
+         self.jenkins_proxy_url = jenkins_proxy_url
+-
+-        passman = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+-        passman.add_password(None, jenkins_url, username, password)
+-        authhandler = urllib.request.HTTPBasicAuthHandler(passman)
+-        self.urllib_opener = urllib.request.build_opener(authhandler)
+-        urllib.request.install_opener(self.urllib_opener)
++        self.username = username
++        self.password = password
+
+     def patch_url(self, url):
+-        # Test for presence of a url that needs to be patched.
+-        # When behind a proxy, jenkins-launchpad-plugin can be configured
+-        # to communicate directly with the backend URL. However, data
+-        # retreived from jenkins API calls will have the proxified URL.
+-        # These URLs need to be patched to use the backend URL.
++        """Test for presence of a url that needs to be patched.
++
++        When behind a proxy, jenkins-launchpad-plugin can be configured
++        to communicate directly with the backend URL. However, data
++        retreived from jenkins API calls will have the proxified URL.
++        These URLs need to be patched to use the backend URL.
++        """
+         if self.jenkins_url and self.jenkins_proxy_url:
+             if url.startswith(self.jenkins_proxy_url):
+                 return self.jenkins_url + url[len(self.jenkins_proxy_url):]
+         return url
+
+     def get_json_data(self, url, append_api=True):
++        """Get data from Jenkins in JSON format."""
+         url = self.patch_url(url)
+         if append_api:
+             url = url + '/api/json'
+-        data = urllib.request.urlopen(url)
+-        return json.load(data)
++        kwargs = {}
++        if self.username and self.password:
++            kwargs = {"auth": (self.username, self.password)}
++        data = requests.get(url, **kwargs)
++        if data.status_code == 200:
++            return json.loads(data.text)
++        else:
++            return {}

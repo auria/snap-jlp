@@ -46,10 +46,11 @@ parts:
       - zlib1g
     python-packages:
       - breezy
-      - jenkins
+      - python-jenkins
       - Jinja2
       - launchpadlib
       - lockfile
+      - requests
       - setuptools
       - python-git
       - PyYAML
@@ -58,12 +59,12 @@ parts:
         ${SNAPCRAFT_PART_INSTALL}/lib/python3.6/site-packages/
       patch -u ${SNAPCRAFT_PART_BUILD}/jlp/commands/launchpadTrigger.py \
         -i ${SNAPCRAFT_PART_BUILD}/../../patch/src/0001-jlp-commands-launchpadTrigger.patch
+      patch -u ${SNAPCRAFT_PART_BUILD}/jlp/jsonjenkins.py \
+        -i ${SNAPCRAFT_PART_BUILD}/../../patch/src/002-jlp-jsonjenkins.patch
       rm -rf ${SNAPCRAFT_STAGE}/*
       snapcraftctl build
     override-prime: |
       snapcraftctl prime
-      cd ${SNAPCRAFT_PRIME}/usr/lib/python3/dist-packages
-      ln -s ../../../../lib/python3.6/site-packages/lookup3.cpython-36m-x86_64-linux-gnu.so lookup3.so
       echo "Compiling pyc files..."
       ${SNAPCRAFT_PRIME}/usr/bin/python3 -m compileall \
        -q ${SNAPCRAFT_PRIME}
